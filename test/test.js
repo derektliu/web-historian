@@ -58,7 +58,6 @@ describe('server', function() {
 
         // Reset the test file and process request
         fs.closeSync(fs.openSync(archive.paths.list, 'w'));
-
         request
           .post('/')
           .type('form')
@@ -81,7 +80,6 @@ describe('archive helpers', function() {
     it('should read urls from sites.txt', function (done) {
       var urlArray = ['example1.com', 'example2.com'];
       fs.writeFileSync(archive.paths.list, urlArray.join('\n'));
-
       archive.readListOfUrls(function(urls) {
         expect(urls).to.deep.equal(urlArray);
         done();
