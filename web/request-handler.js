@@ -19,6 +19,7 @@ exports.handleRequest = function (req, res) {
         body += chunk;
       });
       req.on('end', function() {
+        body = body.slice(4);
         archive.addUrlToList(body, function(err, data) {
           if (err) {
             throw err;

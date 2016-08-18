@@ -25,36 +25,35 @@ exports.initialize = function(pathsObj) {
 // The following function names are provided to you to suggest how you might
 // modularize your code. Keep it clean!
 
-exports.readListOfUrls = cb =>
-  fs.readFile(exports.paths.list, 'utf8', (err, data)=> cb(data.split('\n')));
-
-exports.isUrlInList = (url, cb)=> {
-  return exports.readListOfUrls(arr=> 
-    // var check = false;
-    // arr.forEach(elem => { if (elem === url) { check = true; }});
-    // return cb(check);
-    cb(arr.some(elem => elem === url ? true : false))
+exports.readListOfUrls = cb =>{
+  fs.readFile(exports.paths.list, 'utf8', (err, data)=> 
+    data ? cb(data.split('\n')) : cb([])
   );
 };
 
-exports.addUrlToList = function(body, cb) {
-  // var writing = fs.open(exports.paths.list, 'w', function(err, fd) {
-  //   fs.write(fd, body, function(err, written) {
-  //     fs.close(written, function(err) {
-  //       if (err) { throw err; }
-  //     });
-  //   });
-  // });
-  var newUrl = body.slice(4) + '\n';
-  exports.readListOfUrls(function(arr) {
-    var str = arr.push(newUrl).join('\n');
-    fs.writeFile(exports.paths.list, str, cb);
-    
+exports.isUrlInList = (url, cb)=> {
+  return exports.readListOfUrls(arr=> cb(arr.some(elem => elem === url ? true : false))
+  );
+};
+
+exports.addUrlToList = (body, cb) => {
+  exports.readListOfUrls(arr=> {
+    arr.push(body + '\n');
+    fs.writeFile(exports.paths.list, arr.join('\n'), cb);  
   });
 };
 
-exports.isUrlArchived = function() {
+exports.isUrlArchived = function(file, cb) {
+  fs.readFile(exports.paths.archivedSites + '/' + file, err => cb(!err));
 };
 
-exports.downloadUrls = function() {
+exports.downloadUrls = function(arr) {
+  arr.forEach(function(file) {
+    exports.isUrlArchived(file, function(exists) {
+      if (!exists) {
+        //create
+        fs.writeFile(exports.paths.archivedSites + '/' + file, 'blah blah', err => { if (err) { throw err; } });
+      }
+    });
+  });
 };
