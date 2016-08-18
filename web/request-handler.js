@@ -1,16 +1,14 @@
 var path = require('path');
 var archive = require('../helpers/archive-helpers');
 // require more modules/folders here!
-var httpHelpers = require('./http-helpers');
-
+var hh = require('./http-helpers');
 
 exports.handleRequest = function (req, res) {
-  if (req.url === '/') {
+  if (hh.siteAssets[req.url]) {
     if (req.method === 'GET') {
-      httpHelpers.serveAssets(res, './web/public/index.html', function(err, data) {
+      hh.serveAssets(res, hh.siteAssets[req.url].path, function(err, data) {
         if (err) { throw err; }
-        res.writeHeader(200, httpHelpers.headers);
-        res.end(data);
+        hh.reply(res, 200, hh.siteAssets[req.url].contentType, data);
       });
     }
     if (req.method === 'POST') {
@@ -20,26 +18,35 @@ exports.handleRequest = function (req, res) {
       });
       req.on('end', function() {
         body = body.slice(4);
-        archive.addUrlToList(body, function(err, data) {
-          if (err) {
-            throw err;
-          }
-          res.writeHeader(302, httpHelpers.headers);
-          res.end();
+
+        archive.isUrlInList(body, function(foundUrl) {
+          if (foundUrl) {
+            archive.isUrlArchived(body, function(foundArchive) {
+              if (foundArchive) {
+                // serving...
+                hh.serveAssets(res, archive.paths.archivedSites + '/' + body, err => err ? console.log(err) : console.log('ok'));
+                hh.reply(res, 302, 'text/html', data);
+              } else {
+                hh.serveLoadingPage(res);
+              }
+            });
+          } else {
+            archive.addUrlToList(body, err => err ? console.log(err) : console.log('ok'));
+            hh.serveLoadingPage(res);
+          }              
         });
       });
     }
   } else if (req.url === '/www.google.com') {
     var fixturePath = archive.paths.archivedSites + '/' + 'www.google.com';
     if (req.method === 'GET') {
-      httpHelpers.serveAssets(res, fixturePath, function(err, data){
+      hh.serveAssets(res, fixturePath, function(err, data) {
         if (err) { throw err; }
-        res.writeHeader(200, httpHelpers.headers);
+        res.writeHeader(200, hh.headers);
         res.end(data);
       });
     }
   } else {
-    res.writeHeader(404, httpHelpers.headers);
-    res.end(archive.paths.list);
+    hh.reply(res, 404, 'text/html', '<h1>404 You Suck</h1>');
   }
 };

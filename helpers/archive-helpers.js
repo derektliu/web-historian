@@ -31,10 +31,7 @@ exports.readListOfUrls = cb =>{
   );
 };
 
-exports.isUrlInList = (url, cb)=> {
-  return exports.readListOfUrls(arr=> cb(arr.some(elem => elem === url ? true : false))
-  );
-};
+exports.isUrlInList = (url, cb)=> exports.readListOfUrls(arr=> cb(arr.some(elem => elem === url ? true : false)));
 
 exports.addUrlToList = (body, cb) => {
   exports.readListOfUrls(arr=> {
@@ -43,16 +40,13 @@ exports.addUrlToList = (body, cb) => {
   });
 };
 
-exports.isUrlArchived = function(file, cb) {
-  fs.readFile(exports.paths.archivedSites + '/' + file, err => cb(!err));
-};
+exports.isUrlArchived = (file, cb)=> fs.readFile(exports.paths.archivedSites + '/' + file, err => cb(!err));
 
 exports.downloadUrls = function(arr) {
   arr.forEach(function(file) {
     exports.isUrlArchived(file, function(exists) {
       if (!exists) {
-        //create
-        fs.writeFile(exports.paths.archivedSites + '/' + file, 'blah blah', err => { if (err) { throw err; } });
+        fs.writeFile(exports.paths.archivedSites + '/' + file, '', err => { if (err) { throw err; } });
       }
     });
   });
