@@ -2,6 +2,7 @@ var path = require('path');
 var archive = require('../helpers/archive-helpers');
 // require more modules/folders here!
 var hh = require('./http-helpers');
+var test = require('../workers/htmlfetcher.js');
 
 exports.handleRequest = function (req, res) {
   if (hh.siteAssets[req.url]) {
@@ -24,8 +25,10 @@ exports.handleRequest = function (req, res) {
             archive.isUrlArchived(body, function(foundArchive) {
               if (foundArchive) {
                 // serving...
-                hh.serveAssets(res, archive.paths.archivedSites + '/' + body, err => err ? console.log(err) : console.log('ok'));
-                hh.reply(res, 302, 'text/html', data);
+                hh.serveAssets(res, archive.paths.archivedSites + '/' + body, (err,data) => {
+                  if (err){ console.log (err); }
+                  hh.reply(res, 302, 'text/html', data);
+                });
               } else {
                 hh.serveLoadingPage(res);
               }
@@ -46,6 +49,8 @@ exports.handleRequest = function (req, res) {
         res.end(data);
       });
     }
+  } else if (req.url === '/test') {
+    archive.downloadUrls(['www.google.com']);
   } else {
     hh.reply(res, 404, 'text/html', '<h1>404 You Suck</h1>');
   }

@@ -14,7 +14,7 @@
     "start:es6": "babel-node ./web/basic-server.js",
     "test": "mocha test",
     "test:es6": "mocha --compilers js:babel-register test",
-    "lint": "eslint ./"
+    "lint": "eslint ./",
   },
   "dependencies": {
     "bluebird": "^3.3.4",

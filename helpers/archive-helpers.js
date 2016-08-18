@@ -1,6 +1,26 @@
 var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
+var http = require('http');
+
+exports.grabWebsite = function(url, cb) {
+  var options = {
+    host: url,
+    port: 80,
+    path: '/',
+    method: 'GET'
+  };
+
+  http.get(options, res=> {
+    var body = '';
+    res.on('data', function(chunk) {
+      body += chunk;
+    });
+    res.on('end', function() {
+      cb(body);
+    });
+  });
+};
 
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
@@ -35,6 +55,7 @@ exports.isUrlInList = (url, cb)=> exports.readListOfUrls(arr=> cb(arr.some(elem 
 
 exports.addUrlToList = (body, cb) => {
   exports.readListOfUrls(arr=> {
+    arr.pop();
     arr.push(body + '\n');
     fs.writeFile(exports.paths.list, arr.join('\n'), cb);  
   });
@@ -43,11 +64,17 @@ exports.addUrlToList = (body, cb) => {
 exports.isUrlArchived = (file, cb)=> fs.readFile(exports.paths.archivedSites + '/' + file, err => cb(!err));
 
 exports.downloadUrls = function(arr) {
+  if (arr[arr.length-1] === '') { arr.pop(); }
   arr.forEach(function(file) {
     exports.isUrlArchived(file, function(exists) {
       if (!exists) {
-        fs.writeFile(exports.paths.archivedSites + '/' + file, '', err => { if (err) { throw err; } });
+        exports.grabWebsite(file, function(body) {
+          fs.writeFile(exports.paths.archivedSites + '/' + file, body, err => { if (err) { throw err; } });
+        });
+      } else {
+        console.log(' IT EXISTS! - archive-helpers.js - line 75');
       }
     });
   });
 };
+
